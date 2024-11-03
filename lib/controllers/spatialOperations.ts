@@ -26,10 +26,11 @@ export const checkPointInPolygon = async ({ geom1, geom2 }: { geom1: GeoJSON; ge
         ST_GeomFromGeoJSON('${geom2String}') as target
     );`);
 
-      return query[0].is_contained;
+      return query[0];
     }
   } catch (error) {
-    console.log('🚀 ~ checkPointInPolygon ~ error:', error);
+    console.log(' Server error in checkPointInPolygon', error);
+    return null;
   }
 };
 
@@ -77,7 +78,7 @@ export const getCentroid = async ({ geom }: { geom: GeoJSON }) => {
       };
     }
   } catch (error) {
-    console.log('🚀 ~ getCentroid ~ error:', error);
+    console.log(' Server error in getCentroid', error);
     return null;
   }
 };
@@ -114,7 +115,7 @@ export const getBuffer = async ({ geom, distance }: { geom: GeoJSON; distance: n
       return JSON.parse(query[0].buffered_geojson);
     }
   } catch (error) {
-    console.log('🚀 ~ getBuffer ~ error:', error);
+    console.log('Server error in getBuffer', error);
     return null;
   }
 };
@@ -143,7 +144,7 @@ export const getDistance = async ({ geom1, geom2 }: { geom1: GeoJSON; geom2: Geo
       };
     }
   } catch (error) {
-    console.log('🚀 ~ getDistance ~ error:', error);
+    console.log('Server error in getDistance', error);
     return null;
   }
 };
@@ -183,7 +184,7 @@ export const getIntersection = async ({ geom1, geom2 }: { geom1: GeoJSON; geom2:
       };
     }
   } catch (error) {
-    console.log('🚀 ~ getIntersection ~ error:', error);
+    console.log('Server error in getIntersection', error);
     return null;
   }
 };

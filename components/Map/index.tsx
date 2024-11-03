@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Send, Layers, Settings } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
-// Initial view state centered on New York City
 const INITIAL_VIEW_STATE = {
   longitude: -73.935242,
   latitude: 40.73061,
@@ -18,7 +17,6 @@ const INITIAL_VIEW_STATE = {
 };
 
 const GeospatialDashboard = () => {
-  // State management
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
   const [points, setPoints] = useState<any[]>([]);
   const [selectedPoint, setSelectedPoint] = useState<any>(null);
@@ -32,7 +30,6 @@ const GeospatialDashboard = () => {
     buffer: true,
   });
 
-  // Layer definitions
   const pointLayer = new ScatterplotLayer({
     id: 'points',
     data: points,
@@ -50,7 +47,6 @@ const GeospatialDashboard = () => {
   });
 
   const handlePointSelection = useCallback((selectedPoint: any) => {
-    // Update the selected state of all points
     setPoints((prevPoints) =>
       prevPoints.map((point) => ({
         ...point,
@@ -60,11 +56,8 @@ const GeospatialDashboard = () => {
 
     console.log(selectedPoint, 'point selected', points);
 
-    // Perform any additional actions with the selected point
-    // For example, you might want to fetch additional data or update the UI
     setSelectedPoint(selectedPoint);
 
-    // If you want to perform a buffer operation on selection, you could do:
     handleBufferOperation(selectedPoint);
   }, []);
 
@@ -80,7 +73,6 @@ const GeospatialDashboard = () => {
       coordinates: swappedCoordinates,
     };
   }
-  // Helper function to perform buffer operation
   const handleBufferOperation = async (point: any) => {
     try {
       const response = await fetch('/api/operations/buffer', {
@@ -118,11 +110,9 @@ const GeospatialDashboard = () => {
   });
   // console.log('🚀 ~ GeospatialDashboard ~ bufferLayer:', bufferLayer);
 
-  // Handle map click to add points
   const onMapClick = useCallback(
     (event: any) => {
       if (!event.object) {
-        // Only add point if we didn't click an existing point
         const newPoint = {
           longitude: event.coordinate[0],
           latitude: event.coordinate[1],
@@ -134,7 +124,6 @@ const GeospatialDashboard = () => {
     [points],
   );
 
-  // Process natural language query
   const handleQuerySubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -152,7 +141,6 @@ const GeospatialDashboard = () => {
       const data = await response.json();
       console.log('🚀 ~ handleQuerySubmit ~ data:', data);
 
-      // Add to chat history
       setChatHistory((prev) => [
         ...prev,
         {
@@ -168,16 +156,11 @@ const GeospatialDashboard = () => {
 
       setLlmHistory(data.currentCtx);
 
-      // Update visualization based on operation type
-
       console.log('🚀 ~ handleQuerySubmit ~ data.result:', data);
       handleOperationResult(data);
     } catch (error) {
       console.error('Error processing query:', error);
-      //@ts-ignore
-      console.error('Error processing query:', error.response);
-      //@ts-ignore
-      console.error('Error processing query:', error.data);
+
       setChatHistory((prev) => [
         ...prev,
         {
@@ -192,18 +175,14 @@ const GeospatialDashboard = () => {
     setQuery('');
   };
 
-  // Handle operation results
   const handleOperationResult = (result: any) => {
     console.log('🚀 ~ handleOperationResult ~ result:', result);
     if (result.geometry && result.geometry.geometry?.type === 'MultiPoint') {
-      console.log('🚀 ~ handleOperationResult ~ esult.operati:', result.operation);
-
       const points = result.geometry.geometry?.coordinates.map((coord: number[], idx: number) => ({ id: idx, longitude: coord[0], latitude: coord[1] }));
       setPoints(points);
       setSelectedPoint(null);
     }
     if (result.geometry && result.geometry?.type === 'FeatureCollection') {
-      console.log('🚀 ~ handleOperationResult ~ result.geometry.geometry?.type:', result.geometry.geometry?.type);
       setBufferResults(result.geometry);
     }
   };
