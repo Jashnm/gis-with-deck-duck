@@ -2,10 +2,10 @@ import { checkPointInPolygon, getArea, getBuffer, getCentroid, getDistance, getI
 import { NextResponse } from 'next/server';
 
 export async function POST(request: Request, { params }: { params: Promise<{ operation: string }> }) {
+  const operation = (await params).operation;
   try {
     const body = await request.json();
 
-    const operation = (await params).operation;
     let response = null;
     if (operation === 'area') {
       response = await getArea({ geom: body.geom });
@@ -30,6 +30,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ ope
     return NextResponse.json(response);
   } catch (error) {
     console.log(`Server error in POST /api/operations: ${error}`);
-    return NextResponse.error();
+    return NextResponse.json({ error: `Error occurred: Unable to get ${operation}` }, { status: 500 });
   }
 }
