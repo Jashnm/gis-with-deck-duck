@@ -2,7 +2,7 @@
 import React, { useState, useCallback, useEffect, FormEvent } from 'react';
 import DeckGL from '@deck.gl/react';
 import { Map } from 'react-map-gl';
-import { ScatterplotLayer, GeoJsonLayer } from '@deck.gl/layers';
+import { ScatterplotLayer, GeoJsonLayer, IconLayer } from '@deck.gl/layers';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Send, Layers, Settings } from 'lucide-react';
@@ -36,8 +36,29 @@ const GeospatialDashboard = () => {
     visible: layers.points,
     getPosition: (d) => [d.longitude, d.latitude],
     getFillColor: (d) => (d.selected ? [255, 0, 0, 255] : [0, 128, 255, 255]),
-    getRadius: 100,
+    getRadius: 80,
+    getLineColor: [0, 0, 0],
+    getLineWidth: 100,
     pickable: true,
+    radiusScale: 5,
+    onClick: (info) => {
+      if (info.object) {
+        setSelectedPoint(info.object);
+        handlePointSelection(info.object);
+      }
+    },
+  });
+
+  const iconLayer = new IconLayer({
+    id: 'icons',
+    data: points,
+    visible: layers.points,
+    getPosition: (d) => [d.longitude, d.latitude],
+    getSize: 50,
+    getIcon: (d) => 'marker',
+    pickable: true,
+    iconAtlas: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.png',
+    iconMapping: 'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-atlas.json',
     onClick: (info) => {
       if (info.object) {
         setSelectedPoint(info.object);
@@ -128,7 +149,7 @@ const GeospatialDashboard = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('/api/llm', {
+      const response = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -180,6 +201,7 @@ const GeospatialDashboard = () => {
     if (result.geometry && result.geometry.geometry?.type === 'MultiPoint') {
       const points = result.geometry.geometry?.coordinates.map((coord: number[], idx: number) => ({ id: idx, longitude: coord[0], latitude: coord[1] }));
       setPoints(points);
+      setViewState((prev) => ({ ...prev, zoom: 9 }));
       setSelectedPoint(null);
     }
     if (result.geometry && result.geometry?.type === 'FeatureCollection') {
@@ -200,7 +222,19 @@ const GeospatialDashboard = () => {
   return (
     <div className="w-full h-screen relative">
       {/* Main Map */}
-      <DeckGL style={{ borderRadius: '20px' }} initialViewState={viewState} controller={true} layers={[pointLayer, bufferLayer]} onClick={onMapClick}>
+      <DeckGL
+        style={{ borderRadius: '20px' }}
+        initialViewState={viewState}
+        controller={true}
+        layers={[iconLayer, bufferLayer]}
+        getTooltip={(dd) => {
+          if (dd.layer) {
+            console.log(dd, 'tooltip');
+          }
+          return dd.layer && selectedPoint && `${selectedPoint?.latitude?.toFixed(2)}, ${selectedPoint?.longitude?.toFixed(2)}`;
+        }}
+        onClick={onMapClick}
+      >
         <Map mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN} mapStyle="mapbox://styles/mapbox/light-v10" />
       </DeckGL>
 
